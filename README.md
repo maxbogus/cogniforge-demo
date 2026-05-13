@@ -346,3 +346,4 @@ CogniForge is proprietary software. All rights reserved.
 - Built with FastAPI, Next.js, PostgreSQL, Redis, and FAISS
 - Inspired by Aivazovsky's maritime color palette
 - Extends existing `pdf_to_md.py` document processing
+# cogniforge-demo
