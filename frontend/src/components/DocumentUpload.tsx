@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;

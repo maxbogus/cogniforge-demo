@@ -48,6 +48,7 @@ export function PipelineVisualizer({ isRunning, onStepComplete }: PipelineVisual
       }, 800)
       return () => clearTimeout(timer)
     }
+    return () => {}
   }, [isRunning, activeStep, onStepComplete])
 
   useEffect(() => {
@@ -67,7 +68,6 @@ export function PipelineVisualizer({ isRunning, onStepComplete }: PipelineVisual
         {PIPELINE_STEPS.map((step, index) => {
           const isActive = index === activeStep
           const isCompleted = completedSteps.includes(step.id)
-          const isPending = index > activeStep && !isCompleted
           
           return (
             <div key={step.id} className="flex items-center">

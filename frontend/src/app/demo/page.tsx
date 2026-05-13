@@ -2,8 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { 
-  FileText, 
-  Search, 
+  FileText,
   Briefcase, 
   Users,
   Activity,
@@ -25,45 +24,17 @@ import {
 import { searchDocuments, uploadDocument, getDocumentList } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
 
-// Demo scenarios configuration
-const SCENARIOS = [
-  {
-    id: 'rag',
-    title: 'RAG Pipeline',
-    description: 'Полный цикл работы RAG-системы: загрузка → индексация → поиск',
-    icon: <Database className="w-6 h-6 text-blue-600" />
-  },
-  {
-    id: 'due-diligence',
-    title: 'Due Diligence',
-    description: 'Анализ M&A документов и поиск related content',
-    icon: <Briefcase className="w-6 h-6 text-blue-600" />
-  },
-  {
-    id: 'resume',
-    title: 'Resume Screening',
-    description: 'Сравнение резюме кандидатов с требованиями вакансии',
-    icon: <Users className="w-6 h-6 text-blue-600" />
-  },
-  {
-    id: 'monitoring',
-    title: 'System Monitoring',
-    description: 'Observability: health checks, metrics, status всех сервисов',
-    icon: <Activity className="w-6 h-6 text-blue-600" />
-  }
-]
-
 export default function DemoPage() {
   const [activeScenario, setActiveScenario] = useState<string | null>(null)
   const [runningScenario, setRunningScenario] = useState<string | null>(null)
-  const [pipelineStep, setPipelineStep] = useState<string>('')
-  const [demoResults, setDemoResults] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [_pipelineStep, setPipelineStep] = useState<string>('')
+  const [_demoResults, setDemoResults] = useState<any[]>([])
+  const [_loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [documentCount, setDocumentCount] = useState(0)
-  const [loadingDocs, setLoadingDocs] = useState(true)
+  const [_loadingDocs, setLoadingDocs] = useState(true)
 
   // Fetch document count on mount
   useEffect(() => {

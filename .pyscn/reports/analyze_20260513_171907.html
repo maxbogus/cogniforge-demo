@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pyscn Analysis Report</title>
+    <style>
+        :root {
+            --color-success: #15803d;
+            --color-warning: #a16207;
+            --color-danger:  #b91c1c;
+            --color-text:    #0f172a;
+            --color-muted:   #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .header h1 {
+            color: var(--color-text);
+            margin-bottom: 10px;
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .grade-a { background: #14532d; color: white; }
+        .grade-b { background: #365314; color: white; }
+        .grade-c { background: #713f12; color: white; }
+        .grade-d { background: #7c2d12; color: white; }
+        .grade-f { background: #7f1d1d; color: white; }
+
+        .tabs {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .tab-buttons {
+            display: flex;
+            background: #f5f5f5;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            background: white;
+            color: var(--color-muted);
+            font-weight: bold;
+            border-bottom: 2px solid var(--color-muted);
+        }
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--color-text);
+        }
+        .metric-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .code-preview-card {
+            margin: 12px 0 0;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        .code-preview-title {
+            margin-bottom: 8px;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .code-preview {
+            margin: 0;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .risk-low { color: var(--color-success); }
+        .risk-medium { color: var(--color-warning); }
+        .risk-high { color: var(--color-danger); }
+
+        .severity-critical { color: var(--color-danger); }
+        .severity-warning { color: var(--color-warning); }
+        .severity-info { color: #1e40af; }
+
+         
+        .score-bars {
+            margin: 20px 0;
+        }
+        .score-bar-item {
+            margin-bottom: 24px;
+        }
+        .score-bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .score-label {
+            font-weight: 600;
+            color: #333;
+        }
+        .score-value {
+            font-weight: 700;
+            color: var(--color-muted);
+        }
+        .score-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .score-bar-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+        .score-excellent { background: var(--color-success); }
+        .score-good { background: #4d7c0f; }
+        .score-fair { background: var(--color-warning); }
+        .score-poor { background: var(--color-danger); }
+        .score-detail {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+
+         
+        .tab-header-with-score {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .score-badge-compact {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+        }
+        .score-badge-compact.score-excellent {
+            background: var(--color-success);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .score-badge-compact.score-good {
+            background: #4d7c0f;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .score-badge-compact.score-fair {
+            background: var(--color-warning);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .score-badge-compact.score-poor {
+            background: var(--color-danger);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .suggestion-steps {
+            font-size: 13px;
+            margin-top: 4px;
+            padding-left: 20px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>pyscn Analysis Report</h1>
+            <p>Generated: 2026-05-13 17:19:07</p>
+            <div class="score-badge grade-d">
+                Health Score: 54/100 (Grade: D)
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('summary', this)">Summary</button>
+                
+                <button class="tab-button" onclick="showTab('suggestions', this)">Suggestions</button>
+                
+                
+                <button class="tab-button" onclick="showTab('complexity', this)">Complexity</button>
+                
+                
+                <button class="tab-button" onclick="showTab('deadcode', this)">Dead Code</button>
+                
+                
+                <button class="tab-button" onclick="showTab('clone', this)">Clone</button>
+                
+                
+                <button class="tab-button" onclick="showTab('cbo', this)">Coupling</button>
+                
+                
+                <button class="tab-button" onclick="showTab('lcom', this)">Cohesion</button>
+                
+                
+                
+                <button class="tab-button" onclick="showTab('sys-deps', this)">Dependencies</button>
+                
+                
+                <button class="tab-button" onclick="showTab('sys-arch', this)">Architecture</button>
+                
+                
+            </div>
+
+            <div id="summary" class="tab-content active">
+                <h2>Analysis Summary</h2>
+
+                <h3 style="margin-top: 20px; margin-bottom: 16px; color: var(--color-text);">Quality Scores</h3>
+                <div class="score-bars">
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Complexity</span>
+                            <span class="score-value">40/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-poor" style="width: 40%"></div>
+                        </div>
+                        <div class="score-detail">Avg: 9.6, High-risk: 0</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Dead Code</span>
+                            <span class="score-value">100/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-excellent" style="width: 100%"></div>
+                        </div>
+                        <div class="score-detail">0 issues, 0 critical</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Duplication</span>
+                            <span class="score-value">5/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-poor" style="width: 5%"></div>
+                        </div>
+                        <div class="score-detail">9.3% duplication, 1 groups</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Coupling (CBO)</span>
+                            <span class="score-value">100/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-excellent" style="width: 100%"></div>
+                        </div>
+                        <div class="score-detail">Avg: 1.5, High-coupling: 0/19</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Cohesion (LCOM)</span>
+                            <span class="score-value">100/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-excellent" style="width: 100%"></div>
+                        </div>
+                        <div class="score-detail">Avg: 1.0, Low-cohesion: 0/24</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Dependencies</span>
+                            <span class="score-value">70/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-fair" style="width: 70%"></div>
+                        </div>
+                        <div class="score-detail">2 cycles, Depth: 3</div>
+                    </div>
+                    
+
+                    
+                    <div class="score-bar-item">
+                        <div class="score-bar-header">
+                            <span class="score-label">Architecture</span>
+                            <span class="score-value">14/100</span>
+                        </div>
+                        <div class="score-bar-container">
+                            <div class="score-bar-fill score-poor" style="width: 14%"></div>
+                        </div>
+                        <div class="score-detail">14% compliant</div>
+                    </div>
+                    
+                </div>
+
+                <h3 style="margin-top: 24px; margin-bottom: 16px; color: var(--color-text);">File Statistics</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">8</div>
+                        <div class="metric-label">Total Files</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">8</div>
+                        <div class="metric-label">Analyzed Files</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">9.62</div>
+                        <div class="metric-label">Avg Complexity</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Dead Code Issues</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">75</div>
+                        <div class="metric-label">Unique Fragments</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">9.3%</div>
+                        <div class="metric-label">Code Duplication</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">19</div>
+                        <div class="metric-label">Total Classes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">High Coupling (CBO)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1.53</div>
+                        <div class="metric-label">Avg CBO</div>
+                    </div>
+                    
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">24</div>
+                        <div class="metric-label">Classes (LCOM)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Low Cohesion</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1.04</div>
+                        <div class="metric-label">Avg LCOM4</div>
+                    </div>
+                    
+                </div>
+
+                
+                
+                
+                <h3 style="margin-top: 16px; color: var(--color-text);">Dependencies</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">8</div>
+                        <div class="metric-label">Total Modules</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Total Dependencies</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">Max Depth</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">❌ 1</div>
+                        <div class="metric-label">Circular Dependencies</div>
+                    </div>
+                    
+                </div>
+                
+
+                
+                <h3 style="margin-top: 8px; color: var(--color-text);">Architecture</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Violations</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">14.3%</div>
+                        <div class="metric-label">Compliance</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">Layers Analyzed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">14</div>
+                        <div class="metric-label">Total Rules</div>
+                    </div>
+                </div>
+                
+                
+            </div>
+
+            
+            <div id="suggestions" class="tab-content">
+                <h2>Suggestions</h2>
+                <p style="color: #666; margin-bottom: 20px;">Actionable improvements sorted by priority (severity × effort)</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Category</th>
+                            <th>Title</th>
+                            <th>Effort</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>clone</td>
+                            <td>Extract duplicated code (Type-1 exact, 2 fragments)<br><small style="color: #666;">Identical code fragments found. Extract into a shared function.</small><ol class="suggestion-steps"><li>Create a shared function from the duplicated code</li><li>Replace all 2 occurrences with calls to the new function</li><li>Run tests to confirm no regressions</li></ol></td>
+                            <td>easy</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py:419</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>complexity</td>
+                            <td>Refactor high-complexity function &#39;find_similar&#39;<br><small style="color: #666;">Function &#39;find_similar&#39; has cyclomatic complexity of 16. Consider extracting helper functions to reduce complexity.</small><ol class="suggestion-steps"><li>Consolidate exception handlers — merge similar except blocks</li><li>Extract try/except blocks into dedicated error-handling functions</li><li>Re-run: pyscn analyze /home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</li></ol></td>
+                            <td>moderate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py:467</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>complexity</td>
+                            <td>Refactor high-complexity function &#39;upload_document&#39;<br><small style="color: #666;">Function &#39;upload_document&#39; has cyclomatic complexity of 15. Consider extracting helper functions to reduce complexity.</small><ol class="suggestion-steps"><li>Consolidate exception handlers — merge similar except blocks</li><li>Extract try/except blocks into dedicated error-handling functions</li><li>Re-run: pyscn analyze /home/maxbogus/Repositories/cogniforge-demo/backend/app/main.py</li></ol></td>
+                            <td>moderate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/main.py:224</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>complexity</td>
+                            <td>Refactor high-complexity function &#39;search&#39;<br><small style="color: #666;">Function &#39;search&#39; has cyclomatic complexity of 15. Consider extracting helper functions to reduce complexity.</small><ol class="suggestion-steps"><li>Consolidate exception handlers — merge similar except blocks</li><li>Extract try/except blocks into dedicated error-handling functions</li><li>Re-run: pyscn analyze /home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</li></ol></td>
+                            <td>moderate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py:385</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>complexity</td>
+                            <td>Refactor high-complexity function &#39;load_faiss_index&#39;<br><small style="color: #666;">Function &#39;load_faiss_index&#39; has cyclomatic complexity of 14. Consider using early returns or guard clauses to reduce nesting depth.</small><ol class="suggestion-steps"><li>Identify the deepest nested block at line 105</li><li>Convert nested conditions to early returns or guard clauses</li><li>Re-run: pyscn analyze /home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</li></ol></td>
+                            <td>moderate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py:105</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>complexity</td>
+                            <td>Refactor high-complexity function &#39;find_similar_documents&#39;<br><small style="color: #666;">Function &#39;find_similar_documents&#39; has cyclomatic complexity of 13. Consider extracting helper functions to reduce complexity.</small><ol class="suggestion-steps"><li>Split &#39;find_similar_documents&#39; into smaller functions, each handling one responsibility</li><li>Extract blocks of 10&#43; lines into well-named helper functions</li><li>Re-run: pyscn analyze /home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</li></ol></td>
+                            <td>moderate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py:296</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.database&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.health&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.main&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.processing&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-warning">warning</span></td>
+                            <td>architecture</td>
+                            <td>Fix architecture violation in &#39;app.search&#39;<br><small style="color: #666;">Assign modules to defined layers or relax strict_mode</small></td>
+                            <td>moderate</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-critical">critical</span></td>
+                            <td>dependency</td>
+                            <td>Break circular dependency<br><small style="color: #666;">Consider introducing interfaces or abstract base classes to invert dependencies</small></td>
+                            <td>hard</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-critical">critical</span></td>
+                            <td>dependency</td>
+                            <td>Break circular dependency<br><small style="color: #666;">Break cycle between app.database and app.models by introducing a third module or using dependency injection</small></td>
+                            <td>hard</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-critical">critical</span></td>
+                            <td>dependency</td>
+                            <td>Break circular dependency<br><small style="color: #666;">Review your architecture to ensure proper layer separation (e.g., presentation → application → domain → infrastructure)</small></td>
+                            <td>hard</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td><span class="severity-critical">critical</span></td>
+                            <td>dependency</td>
+                            <td>Break circular dependency<br><small style="color: #666;">Consider using event-driven patterns to decouple tightly coupled modules</small></td>
+                            <td>hard</td>
+                            <td></td>
+                        </tr>
+                        
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+            
+
+            
+            <div id="complexity" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Complexity Analysis</h2>
+                    <div class="score-badge-compact score-poor">
+                        40/100
+                    </div>
+                </div>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">13</div>
+                        <div class="metric-label">Total Functions</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">9.62</div>
+                        <div class="metric-label">Average</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">16</div>
+                        <div class="metric-label">Maximum</div>
+                    </div>
+                </div>
+                
+                <h3>Top Complex Functions</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>File</th>
+                            <th>Complexity</th>
+                            <th>Cognitive</th>
+                            <th>Nesting Depth</th>
+                            <th>Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>find_similar</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>16</td>
+                            <td>8</td>
+                            <td>3</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>upload_document</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/main.py</td>
+                            <td>15</td>
+                            <td>11</td>
+                            <td>4</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>search</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>15</td>
+                            <td>9</td>
+                            <td>3</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>load_faiss_index</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>14</td>
+                            <td>23</td>
+                            <td>5</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>find_similar_documents</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>13</td>
+                            <td>26</td>
+                            <td>4</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>search_documents</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/main.py</td>
+                            <td>10</td>
+                            <td>20</td>
+                            <td>4</td>
+                            <td class="risk-medium">medium</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>chunk_text</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/processing.py</td>
+                            <td>7</td>
+                            <td>11</td>
+                            <td>3</td>
+                            <td class="risk-low">low</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>semantic_search</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>7</td>
+                            <td>10</td>
+                            <td>3</td>
+                            <td class="risk-low">low</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>extract_text_from_pdf</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/processing.py</td>
+                            <td>6</td>
+                            <td>6</td>
+                            <td>4</td>
+                            <td class="risk-low">low</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>reindex_cache</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>6</td>
+                            <td>3</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                        </tr>
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </tbody>
+                </table>
+                
+                <p style="color: #666; margin-top: 10px;">Showing top 10 of 13 functions</p>
+                
+                
+            </div>
+            
+
+            
+            <div id="deadcode" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Dead Code Detection</h2>
+                    <div class="score-badge-compact score-excellent">
+                        100/100
+                    </div>
+                </div>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Total Issues</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Critical</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Warnings</div>
+                    </div>
+                </div>
+                
+                
+                <p style="color: var(--color-success); font-weight: bold; margin-top: 20px;">✓ No dead code detected</p>
+                
+                
+            </div>
+            
+
+            
+            <div id="clone" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Clone</h2>
+                    <div class="score-badge-compact score-poor">
+                        5/100
+                    </div>
+                </div>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">75</div>
+                        <div class="metric-label">Unique Fragments</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1</div>
+                        <div class="metric-label">Clone Groups</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1.00</div>
+                        <div class="metric-label">Avg Similarity</div>
+                    </div>
+                </div>
+                
+                
+                <h3>Clone Groups</h3>
+                <p style="color: #666; margin-bottom: 15px;">Code fragments grouped by similarity</p>
+                
+                
+                <div style="background: #f8fafc; padding: 15px; margin-bottom: 15px; border-radius: 8px; border-left: 4px solid #cbd5e1;">
+                    <h4 style="margin-top: 0; color: #333;">Group 0 - 2 clones (Type Type-1, similarity: 1.00)</h4>
+                    <table class="table" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Lines</th>
+                                <th>Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            
+                            <tr>
+                                <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                                <td>419-430</td>
+                                <td>12 lines</td>
+                            </tr>
+                            
+                            
+                            
+                            
+                            <tr>
+                                <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                                <td>502-512</td>
+                                <td>11 lines</td>
+                            </tr>
+                            
+                            
+                            
+                            
+                        </tbody>
+                    </table>
+                </div>
+                
+                
+                
+                
+                
+            </div>
+            
+
+            
+            <div id="cbo" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Coupling</h2>
+                    <div class="score-badge-compact score-excellent">
+                        100/100
+                    </div>
+                </div>
+                <p style="margin-bottom: 20px; color: #666;">Coupling Between Objects (CBO) metrics</p>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">19</div>
+                        <div class="metric-label">Total Classes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">High Risk Classes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1.53</div>
+                        <div class="metric-label">Average CBO</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Max CBO</div>
+                    </div>
+                </div>
+                
+                <h3>Most Dependent Classes</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>File</th>
+                            <th>CBO</th>
+                            <th>Risk Level</th>
+                            <th>Dependent Classes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>DocumentDetailResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>DocumentResponse, DocumentChunkSchema</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentChunk</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/models.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>Base, datetime</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>ProcessingJob</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/models.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>Base, datetime</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>Document</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/models.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>Base, datetime</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>SimilarDocumentsResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>BaseModel, Any</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>SearchResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/search.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>Any, BaseModel</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>BaseModel, datetime</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentChunkSchema</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>BaseModel, datetime</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>SearchResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>BaseModel, SearchResultItem</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentListResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>BaseModel, DocumentResponse</td>
+                        </tr>
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </tbody>
+                </table>
+                
+                <p style="color: #666; margin-top: 10px;">Showing top 10 of 19 classes</p>
+                
+                
+            </div>
+            
+
+            
+            <div id="lcom" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Class Cohesion</h2>
+                    <div class="score-badge-compact score-excellent">
+                        100/100
+                    </div>
+                </div>
+                <p style="margin-bottom: 20px; color: #666;">Lack of Cohesion of Methods (LCOM4) metrics</p>
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">24</div>
+                        <div class="metric-label">Total Classes</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">Low Cohesion</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">1.04</div>
+                        <div class="metric-label">Average LCOM4</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">2</div>
+                        <div class="metric-label">Max LCOM4</div>
+                    </div>
+                </div>
+
+                <h3>Least Cohesive Classes</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Class</th>
+                            <th>File</th>
+                            <th>LCOM4</th>
+                            <th>Risk</th>
+                            <th>Methods</th>
+                            <th>Instance Vars</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>DocumentChunk</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/models.py:70</td>
+                            <td>2</td>
+                            <td class="risk-low">low</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>Config</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:67</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:41</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>Config</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/config.py:54</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>ProcessingJob</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/models.py:114</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>1</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentBase</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:8</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentCreate</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:17</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentChunkSchema</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:26</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>DocumentListResponse</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/schemas.py:71</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>Settings</td>
+                            <td>/home/maxbogus/Repositories/cogniforge-demo/backend/app/config.py:6</td>
+                            <td>1</td>
+                            <td class="risk-low">low</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </tbody>
+                </table>
+                
+                <p style="color: #666; margin-top: 10px;">Showing top 10 of 24 classes</p>
+                
+                
+            </div>
+            
+
+            
+            
+            <div id="sys-deps" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Module Dependencies</h2>
+                    <div class="score-badge-compact score-fair">
+                        70/100
+                    </div>
+                </div>
+                <p style="margin-bottom: 20px; color: #666;">Project-wide module dependency graph metrics</p>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">8</div>
+                        <div class="metric-label">Total Modules</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Total Dependencies</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">Max Depth</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-value">❌ 1</div>
+                        <div class="metric-label">Circular Dependencies</div>
+                    </div>
+                    
+                </div>
+
+                
+                <h3 style="margin-top: 30px;">Main Sequence</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">0.479</div>
+                        <div class="metric-label">Average Instability</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.521</div>
+                        <div class="metric-label">Main Sequence Deviation</div>
+                    </div>
+                </div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Zone</th>
+                            <th>Modules</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>Zone of Pain</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>Main Sequence</td>
+                            <td>app.main, app.search</td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+                
+                
+
+                
+                
+                <h3 style="margin-top: 30px;">Circular Dependencies</h3>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">Severity</th>
+                            <th style="width: 8%;">Size</th>
+                            <th>Dependency Paths</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>
+                                <span style="background: #d1ecf1; color: #0c5460; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">LOW</span>
+                            </td>
+                            <td>2</td>
+                            <td>
+                                
+                                    
+                                        
+                                        <code style="font-size: 11px;">app.database → app.models</code>
+                                    
+                                
+                                    
+                                        <br>
+                                        <code style="font-size: 11px;">app.models → app.database</code>
+                                    
+                                
+                                
+                            </td>
+                        </tr>
+                        
+                        
+                        
+                    </tbody>
+                </table>
+
+                
+                
+
+                
+                
+                <div style="padding: 15px; background: #eff6ff; border-left: 4px solid #bfdbfe; border-radius: 4px; margin: 20px 0;">
+                    <strong style="color: #1e3a8a;">💡 Suggestions for Breaking Cycles:</strong>
+                    <ul style="margin: 10px 0 0 20px; color: #1e3a8a;">
+                        
+                        <li>Consider introducing interfaces or abstract base classes to invert dependencies</li>
+                        
+                        <li>Break cycle between app.database and app.models by introducing a third module or using dependency injection</li>
+                        
+                        <li>Review your architecture to ensure proper layer separation (e.g., presentation → application → domain → infrastructure)</li>
+                        
+                        <li>Consider using event-driven patterns to decouple tightly coupled modules</li>
+                        
+                    </ul>
+                </div>
+                
+                
+                
+
+                
+                <h3>Longest Dependency Chains</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Depth</th>
+                            <th>Path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>1</td>
+                            <td>3</td>
+                            <td>app.main → app.database → app.models</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>app.main → app.processing → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>3</td>
+                            <td>3</td>
+                            <td>app.main → app.models → app.database</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>4</td>
+                            <td>3</td>
+                            <td>app.main → app.health → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>5</td>
+                            <td>3</td>
+                            <td>app.main → app.database → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>6</td>
+                            <td>3</td>
+                            <td>app.models → app.database → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>7</td>
+                            <td>2</td>
+                            <td>app.database → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>8</td>
+                            <td>2</td>
+                            <td>app.database → app.models</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>9</td>
+                            <td>2</td>
+                            <td>app.health → app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>10</td>
+                            <td>2</td>
+                            <td>app.main → app.processing</td>
+                        </tr>
+                        
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+            
+
+            
+            <div id="sys-arch" class="tab-content">
+                <div class="tab-header-with-score">
+                    <h2 style="margin: 0;">Architecture Validation</h2>
+                    <div class="score-badge-compact score-poor">
+                        14/100
+                    </div>
+                </div>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">3</div>
+                        <div class="metric-label">Layers Analyzed</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">14</div>
+                        <div class="metric-label">Total Rules</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">Violations</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">14.3%</div>
+                        <div class="metric-label">Compliance</div>
+                    </div>
+                </div>
+
+                
+                <h3>Top Rule Violations</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Rule</th>
+                            <th>From</th>
+                            <th>To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.database</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.health</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.database</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.health</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.models</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.schemas</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.main</td>
+                            <td>app.processing</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.processing</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                        
+                        <tr>
+                            <td>warning</td>
+                            <td>strict_mode</td>
+                            <td>app.search</td>
+                            <td>app.config</td>
+                        </tr>
+                        
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+            
+            
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName, el) {
+            
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            
+            if (el) { el.classList.add('active'); }
+        }
+    </script>
+</body>
+</html>

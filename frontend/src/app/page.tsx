@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [health, setHealth] = useState<HealthStatus | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [_error, setError] = useState<string | null>(null)
   
   // Upload state
   const [uploading, setUploading] = useState(false)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, FileText, Database, Loader2, ArrowUpRight } from 'lucide-react'
+import { Search, FileText, Database, Loader2 } from 'lucide-react'
 
 interface SearchResult {
   document_id: string
