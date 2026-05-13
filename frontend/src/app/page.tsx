@@ -8,9 +8,11 @@ import {
   XCircle,
   Upload,
   Loader2,
-  Search
+  Search,
+  Eye,
+  X
 } from 'lucide-react'
-import { getSystemInfo, getHealth, uploadDocument, searchDocuments } from '@/lib/api'
+import { getSystemInfo, getHealth, uploadDocument, searchDocuments, getDocument } from '@/lib/api'
 import { useDropzone } from 'react-dropzone'
 
 interface SystemInfo {
@@ -62,6 +64,13 @@ interface DescriptionRow {
   description: string
 }
 
+interface DocumentDetail {
+  id: string
+  filename: string
+  extracted_text: string
+  created_at: string
+}
+
 export default function DashboardPage() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -78,6 +87,11 @@ export default function DashboardPage() {
   const [searchThreshold, setSearchThreshold] = useState(0.7)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
+
+  // Document viewer state
+  const [selectedDocument, setSelectedDocument] = useState<DocumentDetail | null>(null)
+  const [documentLoading, setDocumentLoading] = useState(false)
+  const [documentError, setDocumentError] = useState<string | null>(null)
 
   // Threshold presets
   const thresholdPresets = [
@@ -153,6 +167,35 @@ export default function DashboardPage() {
     }
   }
 
+  const fetchDocumentDetails = async (documentId: string) => {
+    setDocumentLoading(true)
+    setDocumentError(null)
+    try {
+      const data = await getDocument(documentId)
+      // Transform API response to our format
+      const doc: DocumentDetail = {
+        id: data.id,
+        filename: data.filename || data.original_filename || 'Document',
+        extracted_text: data.extracted_text || '',
+        created_at: data.created_at || new Date().toISOString(),
+      }
+      setSelectedDocument(doc)
+    } catch (err) {
+      setDocumentError('Ошибка при загрузке документа')
+      console.error(err)
+    } finally {
+      setDocumentLoading(false)
+    }
+  }
+
+  const handleViewDocument = (result: SearchResult) => {
+    fetchDocumentDetails(result.document_id)
+  }
+
+  const closeDocumentViewer = () => {
+    setSelectedDocument(null)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -202,12 +245,6 @@ export default function DashboardPage() {
                 className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 📖 API Docs
-              </a>
-              <a 
-                href="/demo"
-                className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                📋 Demo →
               </a>
             </div>
           </div>
@@ -358,12 +395,28 @@ export default function DashboardPage() {
                 {searchResults.map((result, idx) => (
                   <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {result.filename}
-                      </span>
-                      <span className="text-sm text-blue-600 dark:text-blue-400">
-                        {Math.round(result.similarity * 100)}% match
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {result.filename}
+                        </span>
+                        {result.page_number && (
+                          <span className="text-xs text-slate-400">
+                            стр. {result.page_number}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-blue-600 dark:text-blue-400">
+                          {Math.round(result.similarity * 100)}% match
+                        </span>
+                        <button
+                          onClick={() => handleViewDocument(result)}
+                          className="p-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                          title="Просмотр документа"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3">
                       {result.chunk_text}
@@ -412,6 +465,65 @@ export default function DashboardPage() {
           </div>
         </section>
       </main>
+
+      {/* Document Viewer Modal */}
+      {selectedDocument && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  {selectedDocument.filename}
+                </h2>
+              </div>
+              <button
+                onClick={closeDocumentViewer}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {documentLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+              ) : documentError ? (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
+                  {documentError}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Document Info */}
+                  <div className="flex gap-4 text-sm text-slate-500 dark:text-slate-400">
+                    {selectedDocument.created_at && (
+                      <span>Создан: {new Date(selectedDocument.created_at).toLocaleDateString('ru-RU')}</span>
+                    )}
+                  </div>
+
+                  {/* Extracted Text */}
+                  {selectedDocument.extracted_text ? (
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Извлеченный текст
+                      </h3>
+                      <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-600 dark:text-slate-300 max-h-96 overflow-y-auto">
+                        {selectedDocument.extracted_text}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">Текст документа недоступен</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
