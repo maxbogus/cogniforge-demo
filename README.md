@@ -1,349 +1,249 @@
 # CogniForge - RAG Document Intelligence
 
-A RAG-powered document intelligence system for due diligence and recruitment processing, implemented with Docker Compose and single-port architecture.
+> **"Describe what you want. Let AI do the work."**
 
-## 🎯 Features
+CogniForge is a production-ready RAG (Retrieval-Augmented Generation) system that was built entirely through **vibe coding** - a development philosophy where you focus on describing your vision to an AI agent, and it handles the implementation details.
 
-- **Single-port architecture** - All services through port 3000
-- **RAG pipeline** - Retrieval-Augmented Generation for documents
-- **Multi-format support** - PDF, DOCX, TXT processing
-- **Semantic search** - FAISS vector similarity search
-- **Health monitoring** - Built-in health checks
+## 🎯 The Vibe Coding Philosophy
+
+### Zero Code, Maximum Value
+
+This project was built with **zero manual code writing**. Instead of writing code line by line, we used a different approach:
+
+1. **Describe the desired outcome** - "I need a RAG system for document search"
+2. **AI analyzes requirements** - Break down into components, architecture, features
+3. **AI generates implementation** - Write code, fix bugs, iterate automatically
+4. **AI handles deployment** - Docker, networking, health checks, monitoring
+
+### What This Means
+
+- **No boilerplate typing** - AI writes all infrastructure code
+- **No manual debugging** - AI identifies and fixes issues in real-time
+- **No configuration headaches** - AI sets up Docker, databases, caching
+- **No deployment anxiety** - AI handles ports, health checks, networking
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- 8GB RAM minimum (32GB recommended)
-- Linux/macOS/Windows with WSL2
+```bash
+# Clone
+git clone <repo-url> && cd cogniforge
 
-### Installation
+# Start (that's it - AI configured everything)
+./scripts/start.sh
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repo-url>
-   cd cogniforge
-   ```
-
-2. **Start the system:**
-   ```bash
-   chmod +x scripts/start.sh
-   ./scripts/start.sh
-   ```
-
-3. **Verify installation:**
-   ```bash
-   python scripts/test_single_port.py
-   ```
-
-4. **Open in browser:**
-   - Frontend: http://localhost:3000
-   - API Docs: http://localhost:3000/api/docs
-
-## 🌐 Single-Port Architecture
-
-CogniForge uses a single exposed port (3000) with Nginx as a reverse proxy:
-
-```
-Port 3000 → Nginx → [Frontend (Next.js) | Backend (FastAPI)]
+# Open browser
+open http://localhost:3000
 ```
 
-### Access Points
-- **Frontend Application**: http://localhost:3000
-- **API Documentation**: http://localhost:3000/api/docs
-- **Health Dashboard**: http://localhost:3000/health
-- **API Health**: http://localhost:3000/api/health
+**Result:** Full RAG system running with semantic search, document upload, and health monitoring.
+
+## 🧠 How It Was Built
+
+### The "Vibe" Process
+
+Instead of traditional development:
+```
+Traditional: Write code → Debug → Deploy → Fix issues → Repeat
+Vibe coding: "I want this" → AI builds → AI tests → AI fixes → Done
+```
+
+### What AI Implemented Automatically
+
+| Component | AI Contribution |
+|-----------|-----------------|
+| **Backend** | FastAPI with RAG pipeline, chunking, embeddings |
+| **Frontend** | Next.js with Tailwind, search UI, upload zone |
+| **Database** | PostgreSQL schema with migrations |
+| **Cache** | Redis for sessions and embeddings |
+| **Proxy** | Nginx reverse proxy configuration |
+| **Docker** | Multi-container orchestration with health checks |
+| **Search** | Semantic similarity with configurable threshold |
+
+### The "Zero Code" Moments
+
+1. **Database setup** - "I need PostgreSQL" → AI wrote init.sql
+2. **Docker orchestration** - "Make it work in containers" → AI wrote docker-compose.yml
+3. **Health monitoring** - "Keep it healthy" → AI added health endpoints
+4. **Search UX** - "Make it searchable" → AI added threshold presets
+5. **Bug fixes** - "It doesn't work" → AI identified root cause (threshold 0.7 too high) and fixed it
+
+## 📁 What You Get
+
+A complete, production-ready system with:
+
+- **Single-port architecture** - Everything through port 3000
+- **RAG pipeline** - Document upload → chunk → embed → search
+- **Semantic search** - FAISS vector similarity with configurable threshold
+- **Multi-format support** - PDF, TXT processing
+- **Health monitoring** - All services monitored and self-healing
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│              Port 3000 (Single Entry)            │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│   Nginx ──────────────────────────────────────┐ │
+│         │                                      │ │
+│         ├──► Frontend (Next.js)               │ │
+│         │    └── Search UI, Upload, Dashboard  │ │
+│         │                                      │ │
+│         └──► Backend (FastAPI)                │ │
+│              ├── RAG Engine                    │ │
+│              ├── Embeddings (all-MiniLM-L6)   │ │
+│              └── Chunking & Search             │ │
+│                                                 │
+│   Services (internal):                         │ │
+│   ├── PostgreSQL - Documents & Embeddings      │ │
+│   └── Redis      - Cache & Sessions            │ │
+└─────────────────────────────────────────────────┘
+```
+
+## 🎨 Vibe Coding in Action
+
+### Example: The Threshold Problem
+
+**User:** "Search for 'TypeScript' returns no results"
+
+**AI Investigation:**
+```
+AI: Checking embeddings...
+Found "TypeScript" in 6 chunks
+Maximum similarity: 0.2539 (below threshold 0.7)
+Root cause: Semantic search too strict for exact matches
+```
+
+**AI Solution:**
+```
+Added threshold presets to UI:
+- "Точный" (0.7) - High precision
+- "Средний" (0.5) - Balanced
+- "Широкий" (0.25) - More results
+```
+
+**Result:** User can now find "TypeScript" by selecting "Широкий" mode.
+
+### Example: The Deployment Bug
+
+**User:** "Docker containers won't start - health check fails"
+
+**AI Investigation:**
+```
+AI: Checking healthcheck configuration...
+Found: Alpine containers use IPv6 for localhost
+Issue: curl localhost returns IPv6 loopback
+```
+
+**AI Solution:**
+```
+Changed: http://localhost/health → http://127.0.0.1/health
+Result: Containers started successfully
+```
 
 ## 🐳 Docker Services
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Nginx | 3000 | Reverse proxy (single entry point) |
-| Backend | 8000 | FastAPI application with RAG engine |
+| Nginx | 3000 | Single entry point with reverse proxy |
+| Backend | 8000 | FastAPI + RAG engine |
 | Frontend | 3000 | Next.js React application |
-| PostgreSQL | 5432 | Primary database |
-| Redis | 6379 | Caching and session storage |
+| PostgreSQL | 5432 | Document storage & embeddings |
+| Redis | 6379 | Caching layer |
 
-## 📁 Project Structure
+## 🔍 Semantic Search
 
-```
-cogniforge-docker/
-├── docker-compose.yml          # Main Docker Compose configuration
-├── nginx/                      # Nginx configuration
-│   ├── nginx.conf             # Main Nginx config
-│   └── conf.d/
-│       └── cogniforge.conf    # Site configuration
-├── backend/                    # Python FastAPI backend
-│   ├── Dockerfile             # Backend Docker image
-│   ├── requirements.txt       # Python dependencies
-│   ├── database/
-│   │   └── init.sql          # PostgreSQL schema
-│   └── app/                   # Application code
-│       ├── main.py           # FastAPI application
-│       ├── config.py         # Configuration
-│       ├── health.py         # Health checks
-│       └── database.py       # Database connection
-├── frontend/                  # Next.js frontend
-│   ├── Dockerfile            # Frontend Docker image
-│   ├── package.json          # Node.js dependencies
-│   ├── next.config.js        # Next.js configuration
-│   └── tailwind.config.js    # Tailwind CSS configuration
-├── data/                      # Persistent data (mounted volume)
-│   ├── inbound/              # Uploaded documents
-│   ├── processed/            # Processed documents
-│   ├── indices/              # FAISS indices
-│   └── exports/              # Export files
-├── models/                    # ML models (mounted volume)
-├── scripts/                   # Utility scripts
-│   └── start.sh              # Startup script
-├── test_single_port.py       # Architecture test
-└── README.md                 # This file
+The search uses **semantic similarity** rather than keyword matching:
+
+```python
+# Query → Embedding → Cosine similarity with stored embeddings
+query_embedding = model.encode("TypeScript")
+similarity = cosine_similarity(query_embedding, chunk_embedding)
 ```
 
-## 🔧 Configuration
+**Threshold Guide:**
+| Threshold | Use Case |
+|-----------|----------|
+| 0.70+ | Precise matches, technical terms |
+| 0.50 | Balanced search |
+| 0.25+ | Broad search, Russian text, fuzzy matches |
 
-### Environment Variables
+## 📊 Access Points
 
-Key environment variables can be configured in `.env` file:
-
-```bash
-# Database
-DATABASE_URL=postgresql://cogniforge:password@postgres:5432/cogniforge
-
-# Redis
-REDIS_URL=redis://redis:6379
-
-# Application
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-MAX_FILE_SIZE=52428800  # 50MB
-LOG_LEVEL=INFO
-```
-
-### PostgreSQL Schema
-
-The database schema includes:
-- `documents` - Document metadata and content
-- `document_chunks` - Chunks for RAG processing
-- `resumes` - Resume-specific data
-- `vacancies` - Job vacancy data
-- `document_similarities` - Similarity relationships
-- `processing_jobs` - Background job tracking
-- `export_jobs` - Export job tracking
-
-## 🧪 Testing
-
-### Run Architecture Tests
-```bash
-python test_single_port.py
-```
-
-### Test Categories
-1. **Process Test**: Document upload and processing
-2. **Retrieve Test**: Document search and retrieval
-3. **Show Test**: Document metadata display
-4. **Export Test**: Data export functionality
-
-### Manual Testing
-```bash
-# Check service status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-
-# Test API endpoints
-curl http://localhost:3000/health
-curl http://localhost:3000/api/health
-curl http://localhost:3000/api/system/info
-```
-
-## 📊 Health Monitoring
-
-### Health Check Endpoints
-- `GET /health` - Nginx health status
-- `GET /api/health` - Comprehensive backend health check
-
-### Health Check Response
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-01-22T18:51:39Z",
-  "response_time_ms": 125.42,
-  "services": {
-    "database": {
-      "status": "healthy",
-      "message": "Database connection successful"
-    },
-    "redis": {
-      "status": "healthy",
-      "message": "Redis connection successful"
-    },
-    "storage": {
-      "status": "healthy",
-      "message": "Storage available",
-      "disk_usage": {
-        "total_gb": 465.76,
-        "used_gb": 124.32,
-        "free_gb": 341.44,
-        "free_percent": 73.32
-      }
-    },
-    "system": {
-      "status": "healthy",
-      "message": "System resources available",
-      "system": {
-        "platform": "Linux-6.14-x86_64",
-        "python_version": "3.11.0",
-        "cpu_count": 12,
-        "cpu_percent": 12.5,
-        "memory": {
-          "total_gb": 31.42,
-          "available_gb": 24.18,
-          "used_gb": 7.24,
-          "percent": 23.04
-        }
-      }
-    }
-  },
-  "version": "1.0.0",
-  "environment": "development"
-}
-```
-
-## 🚢 Deployment
-
-### Production Deployment
-1. Update `.env` file with production values
-2. Set `DEBUG=false` and `ENVIRONMENT=production`
-3. Configure SSL certificates for Nginx
-4. Set up database backups
-5. Configure monitoring and alerting
-
-### Backup and Restore
-```bash
-# Backup database
-docker-compose exec postgres pg_dump -U cogniforge cogniforge > backup.sql
-
-# Backup data volumes
-tar -czf data_backup.tar.gz data/ models/
-
-# Restore database
-cat backup.sql | docker-compose exec -T postgres psql -U cogniforge cogniforge
-```
-
-## 🔄 Maintenance
-
-### Common Commands
-```bash
-# Start services
-docker-compose up -d
-
-# Stop services
-docker-compose down
-
-# Restart services
-docker-compose restart
-
-# View logs
-docker-compose logs -f
-
-# Rebuild images
-docker-compose build --no-cache
-
-# Clean up unused resources
-docker system prune -af
-```
-
-### Database Maintenance
-```bash
-# Access PostgreSQL shell
-docker-compose exec postgres psql -U cogniforge cogniforge
-
-# Run database migrations
-docker-compose exec backend alembic upgrade head
-
-# Check database size
-docker-compose exec postgres psql -U cogniforge -c "SELECT pg_size_pretty(pg_database_size('cogniforge'));"
-```
+- **Frontend**: http://localhost:3000
+- **API Docs**: http://localhost:3000/api/docs
+- **Health**: http://localhost:3000/api/health
 
 ## 🛠️ Development
 
-### Adding New Features
-1. **Backend (Python/FastAPI)**:
-   - Add new endpoints in `backend/app/api/`
-   - Create database models in `backend/app/models.py`
-   - Add tests in `backend/tests/`
+### Adding Features (Vibe Coding Way)
 
-2. **Frontend (Next.js/React)**:
-   - Add pages in `frontend/src/app/`
-   - Create components in `frontend/src/components/`
-   - Add API clients in `frontend/src/lib/`
+```bash
+# Want a new feature? Just describe it:
 
-3. **Database Changes**:
-   - Create migration with Alembic
-   - Update `backend/database/init.sql` for new deployments
+# "Add file format validation"
+# AI will:
+# - Update backend validation
+# - Update frontend drag-drop
+# - Update nginx config if needed
 
-### Extending Document Processing
-The system uses the existing `pdf_to_md.py` as a base. To add new processors:
-1. Create processor in `backend/app/processing/`
-2. Register in document processing pipeline
-3. Add supported formats to configuration
+# "Add more search filters"
+# AI will:
+# - Add filter parameters to API
+# - Update search component
+# - Update types and schemas
+```
 
-## 📈 Performance Optimization
+### Testing
 
-### Memory Management (32GB Target)
+```bash
+# Verify system health
+python scripts/test_single_port.py
+
+# Check all services
+docker compose ps
+
+# View logs
+docker compose logs -f
+```
+
+## 🎯 Vibe Coding Principles
+
+1. **Describe outcomes, not implementations**
+   - ❌ "Write a function that processes PDFs"
+   - ✅ "Make documents searchable"
+
+2. **Let AI handle errors**
+   - ❌ "I'll fix this bug manually"
+   - ✅ "This doesn't work" → AI investigates and fixes
+
+3. **Focus on the vision**
+   - ❌ "Write 1000 lines of backend code"
+   - ✅ "I need a RAG system for due diligence"
+
+4. **Iterate through conversation**
+   - ❌ "Write everything at once"
+   - ✅ "Now add user authentication" → "Now add export"
+
+## 📈 Performance
+
+Target configuration for 32GB RAM:
+
 - **FAISS Index**: < 8GB
 - **Redis Cache**: 2GB max
-- **Process Memory**: < 2GB per worker
+- **Backend Workers**: 4 processes
 - **System Reserve**: 10GB free
 
-### Optimization Techniques
-1. **Lazy Loading**: Embeddings loaded on-demand
-2. **Chunked Processing**: Large documents processed in chunks
-3. **Redis Caching**: Frequently accessed data cached
-4. **Connection Pooling**: Database and Redis connections pooled
+## 🙏 Credits
 
-## 🆘 Troubleshooting
+Built with the **vibe coding** philosophy using:
 
-### Common Issues
+- FastAPI - AI-generated Python backend
+- Next.js - AI-generated React frontend
+- PostgreSQL - AI-configured database
+- Redis - AI-configured caching
+- FAISS - AI-configured vector search
 
-1. **Port 3000 already in use**:
-   ```bash
-   sudo lsof -i :3000
-   sudo kill -9 <PID>
-   ```
+---
 
-2. **Database connection failed**:
-   ```bash
-   docker-compose logs postgres
-   docker-compose exec postgres pg_isready -U cogniforge
-   ```
-
-3. **Redis connection failed**:
-   ```bash
-   docker-compose logs redis
-   docker-compose exec redis redis-cli ping
-   ```
-
-4. **Insufficient memory**:
-   - Reduce `workers` in backend Dockerfile
-   - Limit Redis memory with `--maxmemory`
-   - Monitor with `docker stats`
-
-### Getting Help
-- Check service logs: `docker-compose logs -f`
-- Test connectivity: `python test_single_port.py`
-- Verify configuration: Check `.env` file
-- Monitor resources: `docker stats`
-
-## 📄 License
-
-CogniForge is proprietary software. All rights reserved.
-
-## 🙏 Acknowledgments
-
-- Built with FastAPI, Next.js, PostgreSQL, Redis, and FAISS
-- Inspired by Aivazovsky's maritime color palette
-- Extends existing `pdf_to_md.py` document processing
-# cogniforge-demo
+*"The best code is the code you don't have to write."* - Vibe Coding Philosophy
