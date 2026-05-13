@@ -1,30 +1,17 @@
 """Document processing and RAG functionality for CogniForge."""
 
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from pathlib import Path
 import hashlib
 
 import pdfplumber
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from .config import settings
+from .utils import get_embedding_model
 
 logger = logging.getLogger(__name__)
-
-# Global model instance
-_embedding_model: Optional[SentenceTransformer] = None
-
-
-def get_embedding_model() -> SentenceTransformer:
-    """Get or initialize the sentence transformer model."""
-    global _embedding_model
-    if _embedding_model is None:
-        logger.info(f"Loading embedding model: {settings.embedding_model}")
-        _embedding_model = SentenceTransformer(settings.embedding_model)
-        logger.info("Embedding model loaded successfully")
-    return _embedding_model
 
 
 def extract_text_from_pdf(file_path: str) -> str:

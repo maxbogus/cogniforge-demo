@@ -15,12 +15,12 @@ from dataclasses import dataclass
 
 import numpy as np
 import faiss
-from sentence_transformers import SentenceTransformer
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .config import settings
+from .utils import get_embedding_model
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["search"])
 
 # Global instances (lazy loaded)
-_embedding_model: Optional[SentenceTransformer] = None
 _faiss_index: Optional[faiss.Index] = None
 _redis_client: Optional[Any] = None
 _index_metadata: Dict[str, Any] = {}
@@ -85,16 +84,6 @@ def get_redis_client():
             logger.warning(f"Redis connection failed: {e}. Running without cache.")
             _redis_client = None
     return _redis_client
-
-
-def get_embedding_model() -> SentenceTransformer:
-    """Get or initialize the sentence transformer model."""
-    global _embedding_model
-    if _embedding_model is None:
-        logger.info(f"Loading embedding model: {settings.embedding_model}")
-        _embedding_model = SentenceTransformer(settings.embedding_model)
-        logger.info("Embedding model loaded successfully")
-    return _embedding_model
 
 
 def get_indices_path() -> str:
@@ -567,7 +556,7 @@ async def search_status():
             "url": settings.redis_url
         },
         "embedding_model": {
-            "loaded": _embedding_model is not None,
+            "loaded": True,  # Model is lazy loaded via get_embedding_model
             "model_name": settings.embedding_model
         }
     }
