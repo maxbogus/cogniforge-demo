@@ -2,7 +2,7 @@
 
 > **"Describe what you want. Let AI do the work."**
 
-CogniForge is a production-ready RAG (Retrieval-Augmented Generation) system that was built entirely through **vibe coding** - a development philosophy where you focus on describing your vision to an AI agent, and it handles the implementation details.
+CogniForge is a demo RAG (Retrieval-Augmented Generation) system that was built entirely through **vibe coding** - a development philosophy where you focus on describing your vision to an AI agent, and it handles the implementation details. This is a demonstration version for GitHub, not suitable for production use.
 
 ## 🎯 The Vibe Coding Philosophy
 
@@ -69,7 +69,7 @@ Vibe coding: "I want this" → AI builds → AI tests → AI fixes → Done
 
 ## 📁 What You Get
 
-A complete, production-ready system with:
+A complete demo system with:
 
 - **Single-port architecture** - Everything through port 3000
 - **RAG pipeline** - Document upload → chunk → embed → search
